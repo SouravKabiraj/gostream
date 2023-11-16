@@ -8,13 +8,11 @@ import (
 
 func TestSort(t *testing.T) {
 	ctx := context.Background()
-	collect := Collect[int](ctx,
-		Sort[int](ctx,
-			func(a int, b int) int { return a - b },
-			Stream[int](ctx,
-				[]int{2, 5, 1, 4, 6, 9, 3, -1},
-			),
-		),
-	)
-	fmt.Println(collect)
+	numbers := []Int{{10}, {2}, {30}, {5}, {6}, {70}, {8}}
+
+	sortedList := New[Int](ctx, numbers).
+		Sort(func(a Int, b Int) int { return a.number - b.number }).
+		Collect()
+
+	fmt.Println(sortedList)
 }

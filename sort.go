@@ -1,11 +1,10 @@
 package gostream
 
 import (
-	"context"
 	"sync"
 )
 
-func Sort[T any](ctx context.Context, sortAlgo func(T, T) int, in <-chan T) <-chan T {
+func (s *Stream[T]) Sort(sortAlgo func(T, T) int) *Stream[T] {
 	out := make(chan T)
 	var wg sync.WaitGroup
 	data := make([]T, 0)
@@ -15,14 +14,14 @@ func Sort[T any](ctx context.Context, sortAlgo func(T, T) int, in <-chan T) <-ch
 
 		for {
 			select {
-			case <-ctx.Done():
+			case <-s.ctx.Done():
 				return
-			case val, ok := <-in:
+			case val, ok := <-s.obj:
 				if !ok {
-					SortSlice(data, sortAlgo)
+					sortSlice(data, sortAlgo)
 					for _, item := range data {
 						select {
-						case <-ctx.Done():
+						case <-s.ctx.Done():
 							return
 						case out <- item:
 						}
@@ -37,17 +36,17 @@ func Sort[T any](ctx context.Context, sortAlgo func(T, T) int, in <-chan T) <-ch
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		SortSlice(data, sortAlgo)
+		sortSlice(data, sortAlgo)
 	}()
 
 	go func() {
 		wg.Wait()
 	}()
 
-	return out
+	return &Stream[T]{s.ctx, out}
 }
 
-func SortSlice[T any](data []T, sortAlgo func(T, T) int) {
+func sortSlice[T any](data []T, sortAlgo func(T, T) int) {
 	n := len(data)
 	for i := 0; i < n-1; i++ {
 		for j := 0; j < n-i-1; j++ {

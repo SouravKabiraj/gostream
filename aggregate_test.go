@@ -8,14 +8,13 @@ import (
 
 func TestExampleAggregate(t *testing.T) {
 	ctx := context.Background()
-	stream := Stream[Person](ctx, []Person{{3}, {1}, {1}, {6}})
-	totalAgePersion := Aggregate[Person, Person](ctx, func(output *Person, person Person) {
-		output.age = output.age + person.age
-	}, stream)
+	filteredList := New[int](ctx, []int{1, 2, 9, 29, 67, 78}).
+		Filter(func(i int) bool { return i < 10 })
 
-	fmt.Println(totalAgePersion)
-}
+	fmt.Println(AggregateFn[Int, int](func(a *Int, b int) { a.number = a.number + b }, filteredList))
 
-type Person struct {
-	age int
+	slice := []Int{{1}, {2}, {9}, {29}, {67}, {78}}
+	sum := New[Int](ctx, slice).
+		Aggregate(func(a *Int, b Int) { a.number = a.number + b.number })
+	fmt.Println(sum) /// 186
 }

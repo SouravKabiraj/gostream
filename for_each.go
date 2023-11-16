@@ -1,13 +1,11 @@
 package gostream
 
-import "context"
-
-func ForEach[T any](ctx context.Context, action func(T), in <-chan T) {
+func (s *Stream[T]) ForEach(action func(T)) {
 	for {
 		select {
-		case <-ctx.Done():
+		case <-s.ctx.Done():
 			return
-		case item, ok := <-in:
+		case item, ok := <-s.obj:
 			if !ok {
 				return
 			}
@@ -16,22 +14,22 @@ func ForEach[T any](ctx context.Context, action func(T), in <-chan T) {
 	}
 }
 
-func ForEachContd[T any](ctx context.Context, action func(T), in <-chan T) <-chan T {
+func (s *Stream[T]) ForEachContd(action func(T)) *Stream[T] {
 	out := make(chan T)
 
 	go func() {
 		defer close(out)
 		for {
 			select {
-			case <-ctx.Done():
+			case <-s.ctx.Done():
 				return
-			case item, ok := <-in:
+			case item, ok := <-s.obj:
 				if !ok {
 					return
 				}
 				action(item)
 				select {
-				case <-ctx.Done():
+				case <-s.ctx.Done():
 					return
 				case out <- item:
 				}
@@ -39,5 +37,5 @@ func ForEachContd[T any](ctx context.Context, action func(T), in <-chan T) <-cha
 		}
 	}()
 
-	return out
+	return &Stream[T]{s.ctx, out}
 }

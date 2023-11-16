@@ -9,7 +9,7 @@ package gostream
 // Disclamer: 'O' type can't be a premitive datatype
 // Example: to add all the integer
 // var sumInt int = AggregateFn[Int, int](ctx, func(a *Int, b int) { a.number = a.number + b }, New[int](ctx, []int{1,2,3})).number
-func AggregateFn[O any, I any](action func(*O, I), inStream *Stream[I]) *O {
+func AggregateFn[O any, I any](inStream *Stream[I], action func(*O, I)) *O {
 	var aggregatedResult O
 	for {
 		select {

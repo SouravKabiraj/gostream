@@ -1,6 +1,6 @@
 package gostream
 
-func TransformFn[I any, O any](transformer func(I) O, inputStream *Stream[I]) (outputStream *Stream[O]) {
+func TransformFn[I any, O any](inputStream *Stream[I], transformer func(I) O) (outputStream *Stream[O]) {
 	out := make(chan O)
 	go func() {
 		defer close(out)
